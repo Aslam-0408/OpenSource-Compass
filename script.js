@@ -1,79 +1,67 @@
 
-const projects = [
-    {
-        id: 1,
-        name: "First Contributions",
-        category: "Web",
-        description: "Learn how to make your first contribution to an open-source project.",
-        technology: "HTML, Git",
-        link: "https://github.com/firstcontributions/first-contributions"
-    },
-    {
-        id: 2,
-        name: "30 Days of Python",
-        category: "Python",
-        description: "Learn Python through practical exercises and challenges.",
-        technology: "Python",
-        link: "https://github.com/Asabeneh/30-Days-Of-Python"
-    },
-    {
-        id: 3,
-        name: "Java Design Patterns",
-        category: "Java",
-        description: "Explore common software design patterns using Java.",
-        technology: "Java",
-        link: "https://github.com/iluwatar/java-design-patterns"
-    },
-    {
-        id: 4,
-        name: "Awesome Python",
-        category: "Python",
-        description: "Discover useful Python frameworks, libraries and resources.",
-        technology: "Python",
-        link: "https://github.com/vinta/awesome-python"
-    },
-    {
-        id: 5,
-        name: "Public APIs",
-        category: "Web",
-        description: "Explore a collection of free public APIs for developers.",
-        technology: "JavaScript, APIs",
-        link: "https://github.com/public-apis/public-apis"
-    },
-    {
-        id: 6,
-        name: "Java Algorithms",
-        category: "Java",
-        description: "Explore algorithms and data structures implemented in Java.",
-        technology: "Java, DSA",
-        link: "https://github.com/TheAlgorithms/Java"
-    }
-];
-
+let projects = [];
 let selectedCategory = "All";
-let savedProjects = JSON.parse(localStorage.getItem("savedProjects")) || [];
+
+const STORAGE_KEY = "oscSavedRepositories";
+
+let savedProjects = [];
+
+try {
+    savedProjects = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    if (!Array.isArray(savedProjects)) savedProjects = [];
+} catch {
+    savedProjects = [];
+}
 
 const projectGrid = document.getElementById("projectGrid");
 const savedGrid = document.getElementById("savedGrid");
 const searchInput = document.getElementById("searchInput");
 const filterButtons = document.querySelectorAll(".filter-btn");
 
-function createCard(project) {
-    const isSaved = savedProjects.includes(project.id);
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[char]);
+}
+
+function createCard(repo) {
+    const isSaved = savedProjects.some(item => item.id === repo.id);
+
+    const name = escapeHTML(repo.full_name);
+    const description = escapeHTML(
+        repo.description || "No description available."
+    );
+    const language = escapeHTML(repo.language || "Not specified");
+    const stars = Number(repo.stargazers_count || 0).toLocaleString();
+
+    const repoUrl = typeof repo.html_url === "string" &&
+        repo.html_url.startsWith("https://github.com/")
+        ? escapeHTML(repo.html_url)
+        : "#";
 
     return `
         <div class="project-card">
-            <span class="category">${project.category}</span>
-            <h3>${project.name}</h3>
-            <p>${project.description}</p>
-            <p><strong>Technology:</strong> ${project.technology}</p>
+            <span class="category">${language}</span>
+
+            <h3>${name}</h3>
+
+            <p>${description}</p>
+
+            <p><strong>⭐ Stars:</strong> ${stars}</p>
 
             <div class="card-actions">
-                <a href="${project.link}" target="_blank" rel="noopener noreferrer">
+                <a href="${repoUrl}"
+                   target="_blank"
+                   rel="noopener noreferrer">
                     View Project →
                 </a>
 
-                <button class="save-btn" onclick="toggleSave(${project.id})">
+                <button class="save-btn"
+                    onclick="toggleSave(${Number(repo.id)})">
                     ${isSaved ? "♥ Saved" : "♡ Save"}
                 </button>
             </div>
@@ -82,61 +70,115 @@ function createCard(project) {
 }
 
 function displayProjects() {
-    const searchText = searchInput.value.toLowerCase();
-
-    const filteredProjects = projects.filter(project => {
-        const matchesCategory =
-            selectedCategory === "All" ||
-            project.category === selectedCategory;
-
-        const matchesSearch =
-            project.name.toLowerCase().includes(searchText) ||
-            project.description.toLowerCase().includes(searchText) ||
-            project.technology.toLowerCase().includes(searchText);
-
-        return matchesCategory && matchesSearch;
-    });
-
-    projectGrid.innerHTML = filteredProjects.length
-        ? filteredProjects.map(createCard).join("")
+    projectGrid.innerHTML = projects.length
+        ? projects.map(createCard).join("")
         : '<p class="empty-message">No projects found.</p>';
 
     displaySavedProjects();
 }
 
 function displaySavedProjects() {
-    const saved = projects.filter(project =>
-        savedProjects.includes(project.id)
-    );
-
-    savedGrid.innerHTML = saved.length
-        ? saved.map(createCard).join("")
+    savedGrid.innerHTML = savedProjects.length
+        ? savedProjects.map(createCard).join("")
         : '<p class="empty-message">You have not saved any projects yet.</p>';
 }
 
 function toggleSave(id) {
-    if (savedProjects.includes(id)) {
-        savedProjects = savedProjects.filter(projectId => projectId !== id);
+    const alreadySaved = savedProjects.some(repo => repo.id === id);
+
+    if (alreadySaved) {
+        savedProjects = savedProjects.filter(repo => repo.id !== id);
     } else {
-        savedProjects.push(id);
+        const repo = projects.find(item => item.id === id);
+
+        if (repo) {
+            savedProjects.push(repo);
+        }
     }
 
-    localStorage.setItem("savedProjects", JSON.stringify(savedProjects));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProjects));
 
     displayProjects();
 }
 
-searchInput.addEventListener("input", displayProjects);
+async function fetchProjects() {
+    projectGrid.innerHTML =
+        '<p class="empty-message">Loading projects from GitHub...</p>';
+
+    const searchText = searchInput.value.trim();
+
+    let queryParts = [];
+
+    if (searchText) {
+        queryParts.push(searchText);
+    }
+
+    if (selectedCategory === "Python") {
+        queryParts.push("language:Python");
+    } else if (selectedCategory === "Java") {
+        queryParts.push("language:Java");
+    } else if (selectedCategory === "Web") {
+        queryParts.push("language:JavaScript");
+    }
+
+    if (queryParts.length === 0) {
+        queryParts.push("stars:>0");
+    }
+
+    queryParts.push("fork:false");
+
+    const query = queryParts.join(" ");
+
+    const apiURL =
+        `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=12`;
+
+    try {
+        const response = await fetch(apiURL, {
+            headers: {
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+        });
+
+        if (response.status === 403 || response.status === 429) {
+            throw new Error(
+                "GitHub search limit reached. Please wait before searching again."
+            );
+        }
+
+        if (!response.ok) {
+            throw new Error("Unable to fetch GitHub projects.");
+        }
+
+        const data = await response.json();
+
+        projects = data.items || [];
+
+        displayProjects();
+
+    } catch (error) {
+        projectGrid.innerHTML =
+            `<p class="empty-message">${escapeHTML(error.message)}</p>`;
+    }
+}
+
+searchInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        fetchProjects();
+    }
+});
 
 filterButtons.forEach(button => {
     button.addEventListener("click", () => {
         filterButtons.forEach(btn => btn.classList.remove("active"));
 
         button.classList.add("active");
+
         selectedCategory = button.dataset.category;
 
-        displayProjects();
+        fetchProjects();
     });
 });
 
-displayProjects();
+fetchProjects();
