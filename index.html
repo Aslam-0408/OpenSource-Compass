@@ -10,35 +10,30 @@
 <body>
 
 <header class="navbar">
-    <a href="#" class="logo">OpenSource Compass</a>
+    <a href="#home" class="logo">OpenSource Compass 🧭</a>
 
     <nav>
         <a href="#home">Home</a>
         <a href="#projects">Explore Projects</a>
+        <a href="#issues">Beginner Issues</a>
+        <a href="#saved">Saved Projects</a>
         <a href="#about">About</a>
-        <a href="#saved">Saved</a>
     </nav>
 
-    <a href="https://github.com" target="_blank" class="nav-btn">
-        GitHub
-    </a>
+    <a href="https://github.com" target="_blank"
+       rel="noopener noreferrer" class="nav-btn">GitHub</a>
 </header>
 
 <main>
     <section class="hero" id="home">
         <div class="hero-content">
             <span class="tag">YOUR OPEN SOURCE JOURNEY STARTS HERE</span>
-
             <h1>Find Your First Open Source Project.</h1>
-
             <p>
                 Discover beginner-friendly projects, explore new
                 technologies and take your first step into open source.
             </p>
-
-            <a href="#projects" class="primary-btn">
-                Explore Projects →
-            </a>
+            <a href="#projects" class="primary-btn">Explore Projects →</a>
         </div>
 
         <div class="hero-card">
@@ -64,7 +59,7 @@
         <input
             type="text"
             id="searchInput"
-        placeholder="Search GitHub projects and press Enter..."
+            placeholder="Search GitHub projects and press Enter..."
         >
 
         <div class="filters">
@@ -75,6 +70,39 @@
         </div>
 
         <div class="project-grid" id="projectGrid"></div>
+    </section>
+
+    <section class="issues-section" id="issues">
+        <div class="section-heading">
+            <span class="tag">TAKE YOUR FIRST STEP</span>
+            <h2>Beginner-Friendly Issues</h2>
+            <p>
+                Find open GitHub issues labelled "good first issue"
+                and start contributing.
+            </p>
+        </div>
+
+        <div class="issue-controls">
+            <select id="issueLanguage">
+                <option value="All">All Languages</option>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="HTML">HTML</option>
+                <option value="CSS">CSS</option>
+                <option value="C++">C++</option>
+            </select>
+
+            <button class="primary-btn" id="findIssuesBtn">
+                Find Issues
+            </button>
+        </div>
+
+        <p id="issueStatus" class="issue-status" aria-live="polite">
+            Select a language and click Find Issues.
+        </p>
+
+        <div class="issue-grid" id="issueGrid"></div>
     </section>
 
     <section class="saved-section" id="saved">
@@ -90,13 +118,11 @@
     <section class="about-section" id="about">
         <span class="tag">OUR MISSION</span>
         <h2>Making Open Source Easier for Everyone.</h2>
-
         <p>
             OpenSource Compass is a platform designed to help beginners
             discover open-source projects and begin their contribution
             journey with confidence.
         </p>
-
         <p>
             We believe everyone deserves an opportunity to learn,
             collaborate and contribute to real-world projects.
@@ -110,6 +136,69 @@
     <p>Built with curiosity and code.</p>
     <p>© 2026 OpenSource Compass</p>
 </footer>
+
+<!-- PROJECT DETAILS POPUP -->
+<div id="projectModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog"
+         aria-modal="true" aria-labelledby="detailName">
+
+        <button class="close-modal" id="closeModal"
+                aria-label="Close">&times;</button>
+
+        <span class="tag">PROJECT INFORMATION</span>
+
+        <h2 id="detailName">Project Name</h2>
+        <p id="detailDescription"></p>
+
+        <div class="detail-stats">
+            <p><strong>Language:</strong> <span id="detailLanguage"></span></p>
+            <p><strong>GitHub Stars:</strong> <span id="detailStars"></span></p>
+            <p><strong>Open Issues:</strong> <span id="detailIssues"></span></p>
+        </div>
+
+        <h3>Explore this project</h3>
+
+        <div class="detail-links">
+            <a id="readmeLink" target="_blank" rel="noopener noreferrer">
+                Read Project README →
+            </a>
+
+            <a id="contributionLink" target="_blank" rel="noopener noreferrer">
+                Contribution Guidelines →
+            </a>
+
+            <a id="issuesLink" target="_blank" rel="noopener noreferrer">
+                Browse Open Issues →
+            </a>
+
+            <a id="pullRequestsLink" target="_blank" rel="noopener noreferrer">
+                View Pull Requests →
+            </a>
+        </div>
+
+        <h3>How to start contributing</h3>
+
+        <ol class="contribution-steps">
+            <li>Read the project's README file.</li>
+            <li>Check the contribution guidelines.</li>
+            <li>Explore issues labelled good first issue.</li>
+            <li>Fork the repository on GitHub.</li>
+            <li>Clone your fork and create a new branch.</li>
+            <li>Make your changes and test them.</li>
+            <li>Submit a Pull Request for review.</li>
+        </ol>
+
+        <p class="detail-note">
+            Contribution instructions can differ between repositories.
+            Always follow the project's own guidelines.
+        </p>
+
+        <a id="mainRepoLink" class="primary-btn"
+           target="_blank" rel="noopener noreferrer">
+            Open GitHub Repository →
+        </a>
+    </div>
+</div>
 
 <script src="script.js"></script>
 </body>
